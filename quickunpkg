@@ -2,7 +2,7 @@
 set -e
 
 if [ -z "${1}" ]; then
-	echo usage: $0 package.tbz2
+	echo "usage: $0 package.tbz2 <SYSROOT>"
         echo example: $0 ssh-mtconfig-4.0.4.tbz2
         exit
 fi
@@ -13,13 +13,24 @@ echo "$1"
 echo "================================================================"
 }
 
+if [ -z "${2}" ]; then
+  export SYSROOT="/"
+else
+  export SYSROOT="${2}"
+  export CBUILD=$(portageq envvar CHOST) 
+  export PORTAGE_CONFIGROOT=${SYSROOT} 
+  export ROOT=${SYSROOT}
+  export PORTAGE_BINHOST=""
+  export FEATURES="-getbinpkg"
+fi
+
 banner "Create the workdir, tbz2file"
 TBZ2FILE="$1"
-TBZ2FILE_XPAK="`echo $1 | sed -e 's/\.tbz2/\.xpak/g'`"
-WORKDIR="/tmp/`date +%Y%m%d_%H%M%S`"
+WORKDIR="${SYSROOT}/tmp/`date +%Y%m%d_%H%M%S`"
+TBZ2FILE_XPAK=$(echo "${WORKDIR}/`basename ${1}`" | sed -e 's/\.tbz2/\.xpak/g')
 echo "TBZ2FILE="$TBZ2FILE
-echo "TBZ2FILE_XPAK="$TBZ2FILE_XPAK
 echo "WORKDIR="$WORKDIR
+echo "TBZ2FILE_XPAK="$TBZ2FILE_XPAK
 mkdir -pv ${WORKDIR}
 
 banner "Copying the file to the workdir"
